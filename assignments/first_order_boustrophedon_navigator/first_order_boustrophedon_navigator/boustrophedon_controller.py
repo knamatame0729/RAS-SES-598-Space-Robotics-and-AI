@@ -19,13 +19,13 @@ class BoustrophedonController(Node):
         self.pose_subscriber = self.create_subscription(Pose, '/turtle1/pose', self.pose_callback, 10)
         
         # Controller parameters
-        self.Kp_linear = 10.0  # Proportional gain for linear velocity
+        self.Kp_linear = 11.0  # Proportional gain for linear velocity
         self.Kd_linear = 0.1   # Derivative gain for linear velocity
-        self.Kp_angular = 5.0  # Proportional gain for angular velocity
-        self.Kd_angular = 0.2  # Derivative gain for angular velocity
+        self.Kp_angular = 8.0  # Proportional gain for angular velocity
+        self.Kd_angular = 0.0  # Derivative gain for angular velocity
         
         # Lawnmower pattern parameters
-        self.spacing = 1.0  # Spacing between lines
+        self.spacing = 0.45  # Spacing between lines
         self.waypoints = self.generate_waypoints()
         self.current_waypoint = 0
         
