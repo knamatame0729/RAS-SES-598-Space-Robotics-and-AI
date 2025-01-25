@@ -8,24 +8,40 @@ import numpy as np
 import math
 from collections import deque
 from std_msgs.msg import Float64
+from rcl_interfaces.msg import SetParametersResult
 
 
 class BoustrophedonController(Node):
     def __init__(self):
         super().__init__('lawnmower_controller')
         
+        # Declare parameters with default values
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('Kp_linear', 10.0),
+                ('Kd_linear', 0.1),
+                ('Kp_angular', 5.0),
+                ('Kd_angular', 0.2),
+                ('spacing', 1.0)
+            ]
+        )
+        
+        # Get initial parameter values
+        self.Kp_linear = self.get_parameter('Kp_linear').value
+        self.Kd_linear = self.get_parameter('Kd_linear').value
+        self.Kp_angular = self.get_parameter('Kp_angular').value
+        self.Kd_angular = self.get_parameter('Kd_angular').value
+        self.spacing = self.get_parameter('spacing').value
+        
+        # Add parameter callback
+        self.add_on_set_parameters_callback(self.parameter_callback)
+        
         # Create publisher and subscriber
         self.velocity_publisher = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
         self.pose_subscriber = self.create_subscription(Pose, '/turtle1/pose', self.pose_callback, 10)
         
-        # Controller parameters
-        self.Kp_linear = 11.0  # Proportional gain for linear velocity
-        self.Kd_linear = 0.1   # Derivative gain for linear velocity
-        self.Kp_angular = 8.0  # Proportional gain for angular velocity
-        self.Kd_angular = 0.0  # Derivative gain for angular velocity
-        
         # Lawnmower pattern parameters
-        self.spacing = 0.45  # Spacing between lines
         self.waypoints = self.generate_waypoints()
         self.current_waypoint = 0
         
@@ -193,6 +209,28 @@ class BoustrophedonController(Node):
         if distance < 0.1:  # Within 0.1 units of target
             self.current_waypoint += 1
             self.get_logger().info(f'Reached waypoint {self.current_waypoint}')
+
+    def parameter_callback(self, params):
+        """Callback for parameter updates"""
+        for param in params:
+            if param.name == 'Kp_linear':
+                self.Kp_linear = param.value
+                self.get_logger().info(f'Updated Kp_linear to {param.value}')
+            elif param.name == 'Kd_linear':
+                self.Kd_linear = param.value
+                self.get_logger().info(f'Updated Kd_linear to {param.value}')
+            elif param.name == 'Kp_angular':
+                self.Kp_angular = param.value
+                self.get_logger().info(f'Updated Kp_angular to {param.value}')
+            elif param.name == 'Kd_angular':
+                self.Kd_angular = param.value
+                self.get_logger().info(f'Updated Kd_angular to {param.value}')
+            elif param.name == 'spacing':
+                self.spacing = param.value
+                self.waypoints = self.generate_waypoints()  # Regenerate waypoints with new spacing
+                self.get_logger().info(f'Updated spacing to {param.value} and regenerated waypoints')
+        
+        return SetParametersResult(successful=True)
 
 
 def main(args=None):
