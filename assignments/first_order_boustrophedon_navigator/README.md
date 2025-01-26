@@ -206,3 +206,75 @@ This will demonstrate understanding of:
 - ROS2 message definitions
 - Custom interface creation
 - Message publishing patterns 
+
+# Assignment Discussion
+## 1. Tuning Methodology
+- Step 1. Set the parameters as initial values and observe performance
+- Step 2. Increase the both Kp values to make quick responds
+- Step 3. Once the trajectory doesn't have big overshoot, decreaselly adjust both Kp_linear and Kp_angular values to smooth cornering
+- Step 4. Adjust both Kd_linear and Kd_angular to make both conering and linear trajectory smoother
+- Step 5. After all these steps, slightly adjust both Kp and Kd to optimize the performance under the required performance
+
+### Final Parameter Values
+```python
+# Tuned parameters
+self.Kp_linear = 11.0  # Proportional gain for linear velocity
+self.Kd_linear = 0.105  # Derivative gain for linear velocity
+self.Kp_angular = 7.9  # Proportional gain for angular velocity
+self.Kd_angular = 0.0  # Derivative gain for angular velocity
+self.spacing = 0.4    # Spacing between lines
+```
+
+## 2. Performance metrics and plots
+- Cross-track cross-track error
+  - Average : 0.117
+  - Maximum : 0.239
+- Cross-track-error 
+   ![alt text](image.png)
+
+- Trajectory plot
+
+   ![alt text](2025-01-26_14-12.png)
+
+- Velocity profiles
+   - Linear Velocity x
+   ![alt text](linear_vel.png)
+   - Angular Velocity z
+   ![alt text](ang_vel.png)
+
+## 3. Challenges and solutions
+| Challenges                                       | Solutions                                                            | 
+| :-----------------------------------------------:|:--------------------------------------------------------------------:|
+|  - Error is not below target values (Overshoot)  |  - Increace the Kp_linear and Kp_angular values to reduce overshoot  |
+|  - Vibration during cornering                    |  - Decreace the Kp_linear and Kp_angular to make smoother cornering  | 
+|  - Uneven spacing between lines                  |  - Slightly adjust Kd_linear and Kd_angular                          |
+|  - Efficiently complete coverage of target area  |  - Make spacing between lines closer but not too close to avoid uneven space betwenn lines as a result  |
+
+## 4. Comparison of different parameter sets
+|Kp_linear|Kd_linear|Kp_angular|Kd_angular|Average Error|Max Error|Smoothness socre |Total score|
+|:-------:|:-------:|:--------:|:--------:|:---:|:--------:|:---:|:-:|
+|40|0.1|40|0.1|N/A|N/A|0/10|0/10|
+|30|0.1|30|0.1|N/A|N/A|0/10|0/10|
+|20|0.1|20|0.1|N/A|N/A|0/10|0/10|
+|10|0.1|10|0.1|0.066|0.149|4/10|6/10|
+|5|0.1|5|0.1|0.271|0.533|9/10|4/10|
+|7|0.1|7|0.1|0.159|0.321|10/10|6/10|
+|9|0.1|9|0.1|0.074|0.208|7/10|6/10|
+|9|0.01|9|0.01|0.083|0.181|9/10|7/10|
+|9|0.05|9|0.01|0.072|0.181|8/10|7/10|
+|9|0.05|9|0.001|0.073|0.181|8/10|7/10|
+|9|0.05|8|0.001|0.103|0.234|8/10|7.5/10|
+|9|0.05|7|0.001|0.127|0.300|8.5/10|6.5/10|
+|10|0.05|7|0.001|0.127|0.300|8/10|7/10|
+|10|0.05|8|0.001|0.110|0.234|8/10|8/10|
+|11|0.05|8|0.001|0.114|0.234|9/10|9/10|
+|11|0.1|8|0.001|0.114|0.234|9/10|9/10|
+|11|0.11|8|0.001|0.114|0.234|9/10|9/10|
+|11|0.105|8|0.001|0.101|0.234|8.5/10|8.5/10|
+|11|0.105|7.9|0.001|0.117|0.240|9/10|9.5/10|
+|11|0.105|7.9|0.0|0.117|0.239|9.5/10|9.5/10|
+|11.1|0.105|7.9|0.0|0.110|0.239|8.5/10|9/10|
+|11.1|0.1|7.9|0.0|0.106|0.240|8.5/10|8.5/10|
+|11|0.1|7.9|0.0|0.101|0.240|8.5/10|8.5/10|
+|11|0.05|7.8|0.0|0.109|0.246|8.5/10|8/10|
+|11|0.05|7.9|0.0|0.105|0.240|8.5/10|8/10|

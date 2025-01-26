@@ -9,6 +9,7 @@ import math
 from collections import deque
 from std_msgs.msg import Float64
 from rcl_interfaces.msg import SetParametersResult
+from lawnmower_performance.msg import Performance
 
 
 class BoustrophedonController(Node):
@@ -19,11 +20,11 @@ class BoustrophedonController(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('Kp_linear', 10.0),
-                ('Kd_linear', 0.1),
-                ('Kp_angular', 5.0),
-                ('Kd_angular', 0.2),
-                ('spacing', 1.0)
+                ('Kp_linear',11.0),
+                ('Kd_linear', 0.105),
+                ('Kp_angular', 7.9),
+                ('Kd_angular', 0.0),
+                ('spacing', 0.4)
             ]
         )
         
@@ -37,8 +38,11 @@ class BoustrophedonController(Node):
         # Add parameter callback
         self.add_on_set_parameters_callback(self.parameter_callback)
         
-        # Create publisher and subscriber
+        # Create publisher
         self.velocity_publisher = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
+        # Create custom publisher
+        self.performance_publisher = self.create_publisher(Performance, 'performance', 10)
+        # Create subscriber
         self.pose_subscriber = self.create_subscription(Pose, '/turtle1/pose', self.pose_callback, 10)
         
         # Lawnmower pattern parameters
@@ -209,6 +213,20 @@ class BoustrophedonController(Node):
         if distance < 0.1:  # Within 0.1 units of target
             self.current_waypoint += 1
             self.get_logger().info(f'Reached waypoint {self.current_waypoint}')
+
+        completion_percentage = (self.current_waypoint / len(self.waypoints)) * 100.0 # compute percentage
+
+        performance_msg = Performance()
+        performance_msg.cross_track_error = cross_track_error
+        performance_msg.current_velocity = vel_msg.linear.x
+        performance_msg.distance_to_next_waypoint = distance
+        performance_msg.completion_percentage = completion_percentage
+        
+        # Publish performances
+        self.performance_publisher.publish(performance_msg)
+
+        #self.get_logger().info()
+
 
     def parameter_callback(self, params):
         """Callback for parameter updates"""
