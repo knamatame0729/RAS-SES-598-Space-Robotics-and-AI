@@ -208,6 +208,13 @@ This will demonstrate understanding of:
 - Message publishing patterns 
 
 # Assignment Discussion
+## Overview
+- 1. Tuning Methodology
+- 2. Performance metrics and plots
+- 3. Challenges and solutions
+- 4. Comparison of different parameters sets
+- 5. Extra Credits
+
 ## 1. Tuning Methodology
 - Step 1. Set the parameters as initial values and observe performance
 - Step 2. Increase the both Kp values to make quick responds
@@ -278,3 +285,20 @@ self.spacing = 0.4    # Spacing between lines
 |11|0.1|7.9|0.0|0.101|0.240|8.5/10|8.5/10|
 |11|0.05|7.8|0.0|0.109|0.246|8.5/10|8/10|
 |11|0.05|7.9|0.0|0.105|0.240|8.5/10|8/10|
+
+## 5. Extra Credit
+### Overview
+Defined 4 custum messages to check the performances of the turtle. It gives you cross-track error, current velocity, distance to next waypoint and completion percentage
+
+### Message Structure
+```text
+float64 cross_track_error
+float64 current_velocity
+float64 distance_to_next_waypoint
+float64 completion_percentage
+```
+### Usage
+These custum messages are pubulished as the topic name of '/performance' everytime the control_loop is called which happens every 0.1 second.
+
+
+

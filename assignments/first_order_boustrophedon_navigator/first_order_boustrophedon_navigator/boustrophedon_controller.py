@@ -225,7 +225,7 @@ class BoustrophedonController(Node):
         # Publish performances
         self.performance_publisher.publish(performance_msg)
 
-        #self.get_logger().info()
+        self.get_logger().info(f'Published: {performance_msg}')
 
 
     def parameter_callback(self, params):
