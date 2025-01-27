@@ -230,17 +230,17 @@ self.spacing = 0.4    # Spacing between lines
   - Average : 0.117
   - Maximum : 0.239
 - Cross-track-error 
-   ![alt text](image.png)
+   ![Image](https://github.com/user-attachments/assets/5480de43-bb33-46e4-bbdb-c1fc1a2204cf)
 
 - Trajectory plot
 
-   ![alt text](2025-01-26_14-12.png)
+   ![image](https://github.com/user-attachments/assets/cfcbb094-1321-4adf-87f3-5d1d51ee03f6)
 
 - Velocity profiles
    - Linear Velocity x
-   ![alt text](linear_vel.png)
+   ![Image](https://github.com/user-attachments/assets/763a8cca-fdcf-461b-b7cf-87c0233613f2)
    - Angular Velocity z
-   ![alt text](ang_vel.png)
+   ![Image](https://github.com/user-attachments/assets/ad2e0a88-e87a-44df-90d0-5eb205b92f29)
 
 ## 3. Challenges and solutions
 | Challenges                                       | Solutions                                                            | 
@@ -248,7 +248,7 @@ self.spacing = 0.4    # Spacing between lines
 |  - Error is not below target values (Overshoot)  |  - Increace the Kp_linear and Kp_angular values to reduce overshoot  |
 |  - Vibration during cornering                    |  - Decreace the Kp_linear and Kp_angular to make smoother cornering  | 
 |  - Uneven spacing between lines                  |  - Slightly adjust Kd_linear and Kd_angular                          |
-|  - Efficiently complete coverage of target area  |  - Make spacing between lines closer but not too close to avoid uneven space betwenn lines as a result  |
+|  - Efficiently complete coverage of target area  |  - Make spacing between lines closer but not too close to avoid uneven space between lines and as a result  |
 
 ## 4. Comparison of different parameter sets
 |Kp_linear|Kd_linear|Kp_angular|Kd_angular|Average Error|Max Error|Smoothness socre |Total score|
