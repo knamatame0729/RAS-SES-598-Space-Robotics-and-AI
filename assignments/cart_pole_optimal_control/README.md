@@ -265,3 +265,14 @@ Students should analyze:
 ## License
 This work is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
 [![Creative Commons License](https://i.creativecommons.org/l/by/4.0/88x31.png)](http://creativecommons.org/licenses/by/4.0/) 
+
+# Assignment 2
+## Performance Matrices
+1. Maximum pole angle deviation
+   - Computig the maximum poel angle
+   ```python
+   self.max_pole_angle = max(self.max_pole_angle, abs(self.x[2, 0]))
+   ```
+2. RMS cart position error
+3. Peak control force used
+4. Recovery time after disturbances

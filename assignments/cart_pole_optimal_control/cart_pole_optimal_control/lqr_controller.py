@@ -45,7 +45,14 @@ class CartPoleLQRController(Node):
         self.state_initialized = False
         self.last_control = 0.0
         self.control_count = 0
-        
+
+        # For Analyze the System
+        self.max_cart_displacement = 0.0
+        self.max_pole_angle = 0.0
+        self.cart_position = []
+        self.control_effort = []
+        self.disturbance = None
+
         # Create publishers and subscribers
         self.cart_cmd_pub = self.create_publisher(
             Float64, 
@@ -63,9 +70,11 @@ class CartPoleLQRController(Node):
             self.joint_state_callback,
             10
         )
+
         
-        # Control loop timer
-        self.timer = self.create_timer(0.01, self.control_loop)
+        
+        # Control loop timer (50 Hz)
+        self.timer = self.create_timer(0.02, self.control_loop)
         
         self.get_logger().info('Cart-Pole LQR Controller initialized')
     
@@ -90,6 +99,25 @@ class CartPoleLQRController(Node):
                 [msg.velocity[pole_idx]]      # Pole angular velocity (θ̇)
             ])
             
+            # Compute maximum values of cart displacement and pole angle
+            self.max_cart_displacement = max(self.max_cart_displacement, abs(self.x[0, 0]))
+            self.max_pole_angle = max(self.max_pole_angle, abs(self.x[2, 0]))
+
+            # Add cart position on the list
+            self.cart_position.append(self.x[0, 0])
+            
+            #if self.disturbance is None:
+             #   self.disturbance = False
+              #  return
+            
+            # If the pole angle is more than ±0.5 rad, set the 
+            if not self.disturbance:
+                if abs(self.x[2, 0]) > 0.08:
+                    self.disturbance = True
+                    # Time tracking for computing the recovery time
+                    self.start_time_disturbance = self.get_clock().now().nanoseconds / 1e9 
+                    self.get_logger().info('-----------Timer Start------')
+
             if not self.state_initialized:
                 self.get_logger().info(f'Initial state: cart_pos={msg.position[cart_idx]:.3f}, cart_vel={msg.velocity[cart_idx]:.3f}, pole_angle={msg.position[pole_idx]:.3f}, pole_vel={msg.velocity[pole_idx]:.3f}')
                 self.state_initialized = True
@@ -97,6 +125,9 @@ class CartPoleLQRController(Node):
         except (ValueError, IndexError) as e:
             self.get_logger().warn(f'Failed to process joint states: {e}, msg={msg.name}')
     
+    def compute_rms_error(self, target_position, real_position):
+        return np.sqrt(np.mean((np.array(real_position) - target_position)**2))
+
     def control_loop(self):
         """Compute and apply LQR control."""
         try:
@@ -107,11 +138,21 @@ class CartPoleLQRController(Node):
             # Compute control input u = -Kx
             u = -self.K @ self.x
             force = float(u[0])
-            
+
+            # Add control effort on the list
+            self.control_effort.append(abs(force))
+
             # Log control input periodically
             if abs(force - self.last_control) > 0.1 or self.control_count % 100 == 0:
                 self.get_logger().info(f'State: {self.x.T}, Control force: {force:.3f}N')
             
+            # Compute Recovery time
+            if self.disturbance:
+                if abs(self.x[2, 0]) < 0.007:
+                    self.recovery_time = self.get_clock().now().nanoseconds / 1e9 - self.start_time_disturbance
+                    self.get_logger().info(f'Recovery time: {self.recovery_time:.3f} seconds')
+                    self.disturbance = False
+
             # Publish control command
             msg = Float64()
             msg.data = force
@@ -123,12 +164,33 @@ class CartPoleLQRController(Node):
         except Exception as e:
             self.get_logger().error(f'Control loop error: {e}')
 
+    def shutdown(self):
+       # Compute average control effort and max control effort
+       avg_control_effort = np.mean(self.control_effort)
+       max_control_effort = max(self.control_effort)
+
+       # Compute RMS error
+       rms_error = self.compute_rms_error(0.0, self.cart_position)
+
+       self.get_logger().info(f'Max Cart Displacement: {self.max_cart_displacement:.3f} m')
+       self.get_logger().info(f'Max Pole Angle: {self.max_pole_angle:.3f} rad')
+       self.get_logger().info(f'Average Control Effort: {avg_control_effort:.3f} N')
+       self.get_logger().info(f'Max Control Effort: {max_control_effort:.3f} N')
+       self.get_logger().info(f'RMS Cart Position Error: {rms_error:.3f} m')
+
+
+
 def main(args=None):
     rclpy.init(args=args)
     controller = CartPoleLQRController()
-    rclpy.spin(controller)
-    controller.destroy_node()
-    rclpy.shutdown()
+
+    try:
+        rclpy.spin(controller)
+    except KeyboardInterrupt:
+        controller.shutdown()
+    finally:
+        controller.destroy_node()
+        rclpy.shutdown()
 
 if __name__ == '__main__':
     main() 
