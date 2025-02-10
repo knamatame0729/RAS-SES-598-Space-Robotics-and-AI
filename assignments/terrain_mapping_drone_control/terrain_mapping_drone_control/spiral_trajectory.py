@@ -7,6 +7,7 @@ import math
 import time
 
 from px4_msgs.msg import VehicleOdometry, OffboardControlMode, VehicleCommand, VehicleStatus, TrajectorySetpoint
+from std_msgs.msg import Float64
 
 class SpiralTrajectory(Node):
     """
@@ -31,6 +32,14 @@ class SpiralTrajectory(Node):
             TrajectorySetpoint, '/fmu/in/trajectory_setpoint', qos_profile)
         self.vehicle_command_publisher = self.create_publisher(
             VehicleCommand, '/fmu/in/vehicle_command', qos_profile)
+            
+        # Gimbal control publishers
+        self.gimbal_pitch_publisher = self.create_publisher(
+            Float64, '/model/x500_gimbal_0/command/gimbal_pitch', 10)
+        self.gimbal_roll_publisher = self.create_publisher(
+            Float64, '/model/x500_gimbal_0/command/gimbal_roll', 10)
+        self.gimbal_yaw_publisher = self.create_publisher(
+            Float64, '/model/x500_gimbal_0/command/gimbal_yaw', 10)
 
         # Subscribers
         self.vehicle_odometry_subscriber = self.create_subscription(
@@ -47,10 +56,10 @@ class SpiralTrajectory(Node):
         self.start_time = time.time()
         
         # Spiral parameters
-        self.INITIAL_HEIGHT = 50.0  # meters
-        self.SPIRAL_DIAMETER = 50.0  # meters
-        self.DESCENT_RATE = 0.5     # m/s
-        self.SPIRAL_PERIOD = 20.0   # seconds for one complete revolution
+        self.INITIAL_HEIGHT = 20.0  # meters
+        self.SPIRAL_DIAMETER = 35.0  # meters
+        self.DESCENT_RATE = 0.5    # m/s
+        self.SPIRAL_PERIOD = 10.0   # seconds for one complete revolution
         self.MIN_HEIGHT = 5.0       # minimum height before landing
         self.HEIGHT_REACHED_THRESHOLD = 0.3  # meters
         
@@ -63,10 +72,49 @@ class SpiralTrajectory(Node):
     def vehicle_odometry_callback(self, msg):
         """Callback function for vehicle odometry data."""
         self.vehicle_odometry = msg
+        self.update_gimbal_angles()
 
     def vehicle_status_callback(self, msg):
         """Callback function for vehicle status data."""
         self.vehicle_status = msg
+
+    def update_gimbal_angles(self):
+        """Update gimbal angles to point at takeoff position (0,0,0)."""
+        # Get current drone position
+        x = self.vehicle_odometry.position[0]
+        y = self.vehicle_odometry.position[1]
+        z = self.vehicle_odometry.position[2]  # Note: z is negative when above ground
+
+        # Calculate distance to takeoff point in horizontal plane
+        distance_xy = math.sqrt(x*x + y*y)
+        
+        # Calculate angles
+        # Pitch angle (negative to point down)
+        pitch_angle = -math.atan2(-z, distance_xy)  # Negative because z is negative when above ground
+        
+        # Yaw angle (to point at takeoff position)
+        yaw_angle = math.atan2(y, x)
+        if yaw_angle < 0:
+            yaw_angle += 2 * math.pi  # Convert to [0, 2π] range
+        
+        # Keep roll level
+        roll_angle = 0.0
+
+        # Publish gimbal commands
+        self.publish_gimbal_angle('pitch', pitch_angle)
+        self.publish_gimbal_angle('roll', roll_angle)
+        self.publish_gimbal_angle('yaw', yaw_angle)
+
+    def publish_gimbal_angle(self, axis, angle):
+        """Publish gimbal angle command."""
+        msg = Float64()
+        msg.data = float(angle)
+        if axis == 'pitch':
+            self.gimbal_pitch_publisher.publish(msg)
+        elif axis == 'roll':
+            self.gimbal_roll_publisher.publish(msg)
+        elif axis == 'yaw':
+            self.gimbal_yaw_publisher.publish(msg)
 
     def arm(self):
         """Send an arm command to the vehicle."""

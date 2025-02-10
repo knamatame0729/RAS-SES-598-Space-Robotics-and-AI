@@ -53,6 +53,22 @@ source ~/ros2_ws/install/setup.bash
 ros2 launch terrain_mapping_drone_control terrain_mapping.launch.py
 ```
 
+### Manual Camera Bridge Setup
+If you need to manually bridge the Gazebo camera topics to ROS2, you can use the following commands:
+```bash
+# Bridge RGB camera
+ros2 run ros_gz_bridge parameter_bridge /camera@sensor_msgs/msg/Image@gz.msgs.Image
+
+# Bridge depth camera
+ros2 run ros_gz_bridge parameter_bridge /depth_camera@sensor_msgs/msg/Image@gz.msgs.Image
+
+# Bridge camera info
+ros2 run ros_gz_bridge parameter_bridge /camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo
+
+# Bridge point cloud
+ros2 run ros_gz_bridge parameter_bridge /depth_camera/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloud
+```
+
 2. Monitor the progress:
 ```bash
 ros2 topic echo /terrain_mapping_controller/status
