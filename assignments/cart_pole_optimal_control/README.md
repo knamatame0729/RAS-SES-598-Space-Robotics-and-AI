@@ -267,12 +267,83 @@ This work is licensed under a [Creative Commons Attribution 4.0 International Li
 [![Creative Commons License](https://i.creativecommons.org/l/by/4.0/88x31.png)](http://creativecommons.org/licenses/by/4.0/) 
 
 # Assignment 2
-## Performance Matrices
-1. Maximum pole angle deviation
-   - Computig the maximum poel angle
-   ```python
-   self.max_pole_angle = max(self.max_pole_angle, abs(self.x[2, 0]))
-   ```
-2. RMS cart position error
-3. Peak control force used
-4. Recovery time after disturbances
+
+## Comparison of different parameters
+|#|Q          |R       |Max Cart Displacement|Max Pole Angle|Average Control Effort|Max Control Effort|RMS|Average Recovery time|
+|:--:|:-----:|:------:|:-----:|:-----:|:-----:|:-----:|:----:|:-:|
+|1|[1 1 10 10]|0.1|N/A|N/A|N/A|N/A|N/A|N/A|N/A|
+|2|[1 1 100 10]|0.01|0.107|0.038|2.497|55.314|0.039|0.253|
+|3|[1 1 100 50]|0.01|0.101|0.03|5.926|124.772|0.041|0.512|
+|4|[100 1 100 10]|0.01|0.14|0.147|39.755|151.507|0.045|0.31|
+|5|[100 1 10 100]|0.01|1.681|0.419|998.335|1727.624|0.627|0.627|
+|6|[100 1 10 100]|0.1|0.073|0.056|6.208|36.168|0.022|0.251|
+|7|[50 1 10 100]|0.01|0.089|0.05|17.104|107.571|0.027|0.232|
+|8|[10 1 10 100]|0.01|0.243|0.102|38.565|246.954|0.067|0.32|
+
+## Plots
+1. Q[1 1 10 10],R[0.1]  ---Failed---
+![Image](https://github.com/user-attachments/assets/9332c152-17f3-4006-8a14-d7b8555020ba)
+2. Q[1 1 100 10], R[0.01]
+![Image](https://github.com/user-attachments/assets/cb4b829b-a80a-4f7d-9c3a-806f26909712)
+3. Q[1 1 100 50], R[0.01]
+![Image](https://github.com/user-attachments/assets/6a803254-859a-46a0-afa2-556febf9ce1b)
+4. Q[100 1 100 10], R[0.01]
+![Image](https://github.com/user-attachments/assets/589bc2c9-b5aa-40ae-a33f-944f1c29de8b)
+5. Q[100 1 10 100], R[0.01]
+![Image](https://github.com/user-attachments/assets/fb292b28-54b7-4a94-9943-d8ac1b0f29f4)
+6. Q[100 1 10 100], R[0.1]
+![Image](https://github.com/user-attachments/assets/d30eb9b5-c33e-473c-8637-8eefbf608812)
+7. Q[50 1 10 100], R[0.01]
+![Image](https://github.com/user-attachments/assets/b0eac831-5f53-40c4-8ca6-59e2fe8646f2)
+8. Q[10 1 10 100], R[0.01]
+![Image](https://github.com/user-attachments/assets/90659941-6bba-4c2b-a711-56fa1cd05ae3)
+
+## Trade-Offs
+1. ### How Q matrix weights affect
+|Q      |Increasing Parameters|Decreasing Parameters|
+|:-----:|:-------------------:|:-------------------:|
+|Q[0, 0] |Reduces the movement of the cart (Less Ocillation)|Prioritizes the pole stability over the cart position(movement).|
+|Q[1, 1]|The velocity of the cart will slow down (Less Ocillation)|The velocity of the cart will be fast. (Quick response)|
+|Q[2, 2]|Stebilizes the pole in the vertical position quickly|Allows some degree of pole leaning |
+|Q[3, 3]|Reduce the pole oscillations for smoothness| Makes faster angular motion for quick response|
+
+2. ### How R parameter affects
+|R       |Increasing Parameters|Decreasing Parameters|
+|:------:|:-------------------:|:-------------------:|
+|R       | Control the system smoother (Slower response)|Control the system more aggressive (Faster stabilization but More ocillation)|
+
+## Discussion
+From these results, #6 Q[100 1 10 100], R[0.1] is the best choise for the real world implementation since it is the most stable and efficient conrrol. Both average control efforts and max control effort is small compared to other cases. This means that the energy consumption will be low. 
+
+## Reinforcement Learning
+Reinforcement Learning is area fo machine learning that how an agent (Cart-pole in this case) should take actions in a environment to maximize a reward.
+
+1. Markov Decision Process  
+- State (S) : Velocity, Accelaration, Angle Velocity and Angle Accelaration
+- Model  T(s, a, s') : Take (a) action will lead to the state (s') When the state is (s). 
+- Action (A) : Right and Left (in this cart-pole case)
+- Reward (R) : If the pole didn't fall, the environment gives a reward. On the other hand, if the pole fell, the environment gives a penalty.
+- Policy π(s) => a: A function that decide how an agent should take actions when the state is (s)
+
+
+In reinforcement learning the agent learn to decide actions that maximize the rewards. While the agent should focuse to maximize teh rewards without any consideration of time, it might take low-risk, low-return actions to risks such as keeping the pole stationary. The policy which learned from those condition might be not the best policy. To optimize the policy, we consider the discount rate which means  
+" You have to take actions quickly. If you don't you will be given small rewards although the action is same." .  
+
+Uπ(s) = E[Σr(t)*R(s(t))|π, s0 = s]  
+Uπ(s) : Total of the rewards (From the state s, and do the plicy(π))  
+Discount rate = r: 0 <= r < 1
+
+The goal in the reinforcement learning is to find a policy that maximizes the reward with discount rate. The optimized policy is represented as π*.  
+
+π* = argmaxΣT(s, a, s')U(s')  
+
+This means that at the state (s), the agent will take the action (a) that maximizes the sum of rewards that consider the future rewards of the next state (s').  
+
+From any given state (s), the agent takes actions that maximize rewards. U(s) can be written as below  
+
+U(s) = R(s) + rmaxΣT(s, a, s')U(s')
+
+This equation is called Bellman equation.
+
+
+

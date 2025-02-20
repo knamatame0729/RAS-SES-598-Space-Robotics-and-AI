@@ -31,6 +31,7 @@ setup(
             'earthquake_force_generator = cart_pole_optimal_control.earthquake_force_generator:main',
             'force_visualizer = cart_pole_optimal_control.force_visualizer:main',
             'state_republisher = cart_pole_optimal_control.state_republisher:main',
+            'dqn_controller = cart_pole_optimal_control.dqn_controller:main',
         ],
     },
 )

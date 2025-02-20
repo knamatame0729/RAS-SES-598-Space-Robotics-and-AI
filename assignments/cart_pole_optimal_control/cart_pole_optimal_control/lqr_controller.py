@@ -33,7 +33,7 @@ class CartPoleLQRController(Node):
         ])
         
         # LQR cost matrices
-        self.Q = np.diag([1.0, 1.0, 10.0, 10.0])  # State cost
+        self.Q = np.diag([100.0, 1.0, 10.0, 100.0])  # State cost
         self.R = np.array([[0.1]])  # Control cost
         
         # Compute LQR gain matrix
@@ -51,14 +51,15 @@ class CartPoleLQRController(Node):
         self.max_pole_angle = 0.0
         self.cart_position = []
         self.control_effort = []
+        self.recovery_times = []
         self.disturbance = None
 
         # Create publishers and subscribers
-        self.cart_cmd_pub = self.create_publisher(
-            Float64, 
-            '/model/cart_pole/joint/cart_to_base/cmd_force', 
-            10
-        )
+        self.cart_cmd_pub = self.create_publisher(Float64, '/model/cart_pole/joint/cart_to_base/cmd_force', 10)
+        self.cart_position_pub = self.create_publisher(Float64, '/cart_pole/cart_position', 10)
+        self.pole_angle_pub = self.create_publisher(Float64, '/cart_pole/pole_angle', 10)
+        self.cart_velocity_pub = self.create_publisher(Float64, '/cart_pole/cart_velocity', 10)
+        self.pole_velocity_pub = self.create_publisher(Float64, '/cart_pole/pole_velocity', 10)
         
         # Verify publisher created successfully
         if self.cart_cmd_pub:
@@ -106,17 +107,12 @@ class CartPoleLQRController(Node):
             # Add cart position on the list
             self.cart_position.append(self.x[0, 0])
             
-            #if self.disturbance is None:
-             #   self.disturbance = False
-              #  return
-            
-            # If the pole angle is more than ±0.5 rad, set the 
+            # If the pole angle is more than ±0.03 rad, set the 
             if not self.disturbance:
-                if abs(self.x[2, 0]) > 0.08:
-                    self.disturbance = True
+                if abs(self.x[2, 0]) > 0.03:
+                    self.disturbance = True # set a flag
                     # Time tracking for computing the recovery time
                     self.start_time_disturbance = self.get_clock().now().nanoseconds / 1e9 
-                    self.get_logger().info('-----------Timer Start------')
 
             if not self.state_initialized:
                 self.get_logger().info(f'Initial state: cart_pos={msg.position[cart_idx]:.3f}, cart_vel={msg.velocity[cart_idx]:.3f}, pole_angle={msg.position[pole_idx]:.3f}, pole_vel={msg.velocity[pole_idx]:.3f}')
@@ -150,6 +146,7 @@ class CartPoleLQRController(Node):
             if self.disturbance:
                 if abs(self.x[2, 0]) < 0.007:
                     self.recovery_time = self.get_clock().now().nanoseconds / 1e9 - self.start_time_disturbance
+                    self.recovery_times.append(self.recovery_time)
                     self.get_logger().info(f'Recovery time: {self.recovery_time:.3f} seconds')
                     self.disturbance = False
 
@@ -160,7 +157,25 @@ class CartPoleLQRController(Node):
             
             self.last_control = force
             self.control_count += 1
-            
+
+            # Publish [x, dx, θ, dθ]
+            msg_cart_pos = Float64()
+            msg_cart_pos.data = self.x[0, 0]
+            self.cart_position_pub.publish(msg_cart_pos)
+
+            msg_cart_velocity = Float64()
+            msg_cart_velocity.data = self.x[1, 0]
+            self.cart_velocity_pub.publish(msg_cart_velocity)
+
+            msg_pole_angle = Float64()
+            msg_pole_angle.data = self.x[2, 0]
+            self.pole_angle_pub.publish(msg_pole_angle)
+
+            msg_pole_velocity = Float64()
+            msg_pole_velocity.data = self.x[3, 0]
+            self.pole_velocity_pub.publish(msg_pole_velocity)
+
+             
         except Exception as e:
             self.get_logger().error(f'Control loop error: {e}')
 
@@ -172,12 +187,15 @@ class CartPoleLQRController(Node):
        # Compute RMS error
        rms_error = self.compute_rms_error(0.0, self.cart_position)
 
+       # Compute average recovery time
+       avg_recovery_times = np.mean(self.recovery_times)
+
        self.get_logger().info(f'Max Cart Displacement: {self.max_cart_displacement:.3f} m')
        self.get_logger().info(f'Max Pole Angle: {self.max_pole_angle:.3f} rad')
        self.get_logger().info(f'Average Control Effort: {avg_control_effort:.3f} N')
        self.get_logger().info(f'Max Control Effort: {max_control_effort:.3f} N')
        self.get_logger().info(f'RMS Cart Position Error: {rms_error:.3f} m')
-
+       self.get_logger().info(f'Average Recovery Time: {avg_recovery_times:.3f} seconds')
 
 
 def main(args=None):
