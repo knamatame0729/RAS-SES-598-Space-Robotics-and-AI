@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+  <model name="cylinder">
+    <static>true</static>
+    <pose>0 0 0 0 0 0</pose>
+    <link name="link">
+      <pose>0 0 0 0 0 0</pose>
+      <collision name="collision">
+        <geometry>
+          <cylinder>
+            <radius>0.5</radius>
+            <length>10.0</length>
+          </cylinder>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <cylinder>
+            <radius>0.5</radius>
+            <length>10.0</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.0 0.0 0.8 1</ambient>
+          <diffuse>0.0 0.0 1.0 1</diffuse>
+          <specular>0.0 0.0 0.2 1</specular>
+          <emissive>0 0 0.2 1</emissive>
+        </material>
+      </visual>
+      
+      <visual name="aruco_marker">
+        <pose>0 0 5.1 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>0.8 0.8 0.01</size>
+          </box>
+        </geometry>
+        <material>
+          <ambient>1 1 1 1</ambient>
+          <diffuse>1 1 1 1</diffuse>
+          <specular>0.5 0.5 0.5 1</specular>
+          <pbr>
+            <metal>
+              <albedo_map>materials/aruco_marker_0.png</albedo_map>
+            </metal>
+          </pbr>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf> 
