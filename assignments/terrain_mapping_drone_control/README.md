@@ -95,7 +95,8 @@ colcon build --packages-select terrain_mapping_drone_control --symlink-install
 source install/setup.bash
 
 # Launch the simulation with visualization
-ros2 launch terrain_mapping_drone_control challenge.launch.py
+ros2 launch terrain_mapping_drone_control cylinder_landing.launch.py
+
 ```
 ## License
 
