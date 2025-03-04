@@ -23,6 +23,11 @@ The assignment will be evaluated based on:
 - Landing precision on the taller cylinder
 - Performance across multiple trials (10 known + 5 unknown scenes)
 
+![image](https://github.com/user-attachments/assets/a1994bda-6329-4a43-9fe2-a2993fe82b86)
+![image](https://github.com/user-attachments/assets/46abc641-b0b8-4b09-956f-3b162cf0a115)
+![image](https://github.com/user-attachments/assets/699ffb41-9e82-4483-99c2-9cd26d6259e2)
+
+
 ### Key Requirements
 
 - Autonomous takeoff and search strategy implementation
