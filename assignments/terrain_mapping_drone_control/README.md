@@ -24,8 +24,8 @@ The assignment will be evaluated based on:
 - Performance across multiple trials (10 known + 5 unknown scenes)
 
 ![image](https://github.com/user-attachments/assets/a1994bda-6329-4a43-9fe2-a2993fe82b86)
-![image](https://github.com/user-attachments/assets/46abc641-b0b8-4b09-956f-3b162cf0a115)
-![image](https://github.com/user-attachments/assets/699ffb41-9e82-4483-99c2-9cd26d6259e2)
+![image](https://github.com/user-attachments/assets/fbdf302c-b27f-4f69-bdb4-c7b7c94573c1)
+
 
 
 ### Key Requirements
