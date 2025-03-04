@@ -14,7 +14,7 @@ Students will develop a controller for a PX4-powered drone to efficiently search
 3. Land safely on top of the taller cylinder
 4. Complete mission while logging time and energy perforance. 
 
-### Evaluation Criteria
+### Evaluation Criteria (100 points)
 
 The assignment will be evaluated based on:
 - Total time taken to complete the mission
@@ -98,6 +98,9 @@ source install/setup.bash
 ros2 launch terrain_mapping_drone_control cylinder_landing.launch.py
 
 ```
+## Extra credit -- 3D reconstruction (50 points)
+Use RTAB-Map or a SLAM ecosystem of your choice to map both rocks, and export the world as a mesh file, and upload to your repo. Use git large file system (LFS) if needed. 
+
 ## License
 
 This assignment is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0). 
