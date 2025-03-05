@@ -29,7 +29,7 @@ def generate_launch_description():
         os.environ['GZ_SIM_RESOURCE_PATH'] = gz_model_path
 
     # Set initial drone pose
-    os.environ['PX4_GZ_MODEL_POSE'] = '0 0 1 0 0 0'
+    os.environ['PX4_GZ_MODEL_POSE'] = '0 0 0.1 0 0 0'
     
     # Launch PX4 SITL with x500_gimbal
     px4_sitl = ExecuteProcess(
