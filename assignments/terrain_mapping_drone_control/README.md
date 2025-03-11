@@ -12,7 +12,9 @@ Students will develop a controller for a PX4-powered drone to efficiently search
    - Estimate height and diameter of each cylinder
    - Determine positions in the world frame
 3. Land safely on top of the taller cylinder
-4. Complete mission while logging time and energy perforance. 
+4. Complete mission while logging time and energy performance. 
+
+![Screenshot from 2025-03-04 20-22-35](https://github.com/user-attachments/assets/3548b6da-613a-401d-bf38-e9e3ac4a2a2b)
 
 ### Evaluation Criteria (100 points)
 
@@ -87,6 +89,21 @@ git clone https://github.com/YOUR_USERNAME/RAS-SES-598-Space-Robotics-and-AI.git
 # Create symlink in your ROS2 workspace
 cd ~/ros2_ws/src
 ln -s ~/RAS-SES-598-Space-Robotics-and-AI/assignments/terrain_mapping_drone_control .
+```
+
+### Copy PX4 Model Files
+
+Before building the package, you need to copy the required PX4 model files:
+
+```bash
+# Navigate to the package
+cd ~/ros2_ws/src/terrain_mapping_drone_control
+
+# Make the setup script executable
+chmod +x scripts/setup_px4_model.sh
+
+# Run the setup script to copy model files
+./scripts/setup_px4_model.sh
 ```
 
 ## Building and Running
