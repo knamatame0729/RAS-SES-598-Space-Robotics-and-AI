@@ -16,7 +16,7 @@
 
     <!-- Mono Camera Link -->
     <link name="mono_camera_link">
-      <pose>0 0 0.2 0 1.5707963267948966 0</pose>
+      <pose>0 0 0.15 0 1.5707963267948966 0</pose>
       <inertial>
         <mass>0.050</mass>
         <inertia>
@@ -62,12 +62,12 @@
         <camera>
           <horizontal_fov>1.204</horizontal_fov>
           <image>
-            <width>1920</width>
-            <height>1080</height>
+            <width>800</width>
+            <height>600</height>
           </image>
           <clip>
             <near>0.1</near>
-            <far>3000</far>
+            <far>100</far>
           </clip>
         </camera>
         <always_on>1</always_on>

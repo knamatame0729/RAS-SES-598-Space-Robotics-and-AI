@@ -20,7 +20,7 @@ def generate_launch_description():
             name='camera_to_base_link',
             arguments=['0.1', '0', '0.05', '0', '0', '0', 'base_link', 'camera_link'],
             output='screen'
-        ),
+        ),  
 
         # RTAB-Map node
         Node(
