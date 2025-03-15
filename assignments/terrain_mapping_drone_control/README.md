@@ -41,7 +41,7 @@ The assignment will be evaluated based on:
 ## Prerequisites
 
 - ROS2 Humble
-- PX4 SITL Simulator
+- PX4 SITL Simulator (Tested with PX4-Autopilot main branch 9ac03f03eb)
 - RTAB-Map ROS2 package
 - OpenCV
 - Python 3.8+
@@ -93,17 +93,17 @@ ln -s ~/RAS-SES-598-Space-Robotics-and-AI/assignments/terrain_mapping_drone_cont
 
 ### Copy PX4 Model Files
 
-Before building the package, you need to copy the required PX4 model files:
+Copy the custom PX4 model files to the PX4-Autopilot folder
 
 ```bash
 # Navigate to the package
 cd ~/ros2_ws/src/terrain_mapping_drone_control
 
 # Make the setup script executable
-chmod +x scripts/setup_px4_model.sh
+chmod +x scripts/deploy_px4_model.sh
 
 # Run the setup script to copy model files
-./scripts/setup_px4_model.sh
+./scripts/deploy_px4_model.sh -p /path/to/PX4-Autopilot
 ```
 
 ## Building and Running
@@ -116,9 +116,14 @@ colcon build --packages-select terrain_mapping_drone_control --symlink-install
 # Source the workspace
 source install/setup.bash
 
-# Launch the simulation with visualization
+# Launch the simulation with visualization with your PX4-Autopilot path
 ros2 launch terrain_mapping_drone_control cylinder_landing.launch.py
 
+# OR you can change the default path in the launch file
+        DeclareLaunchArgument(
+            'px4_autopilot_path',
+            default_value=os.environ.get('HOME', '/home/' + os.environ.get('USER', 'user')) + '/PX4-Autopilot',
+            description='Path to PX4-Autopilot directory'),
 ```
 ## Extra credit -- 3D reconstruction (50 points)
 Use RTAB-Map or a SLAM ecosystem of your choice to map both rocks, and export the world as a mesh file, and upload to your repo. Use git large file system (LFS) if needed. 

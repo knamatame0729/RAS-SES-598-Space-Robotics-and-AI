@@ -12,29 +12,20 @@ def generate_launch_description():
     
     # Get the package share directory
     pkg_share = get_package_share_directory('terrain_mapping_drone_control')
-    
-    # Get paths
-    model_path = os.path.join(pkg_share, 'models')
-    
+        
     # Set Gazebo model and resource paths
     gz_model_path = os.path.join(pkg_share, 'models')
-    if 'GZ_SIM_MODEL_PATH' in os.environ:
-        os.environ['GZ_SIM_MODEL_PATH'] += os.pathsep + gz_model_path
-    else:
-        os.environ['GZ_SIM_MODEL_PATH'] = gz_model_path
 
-    if 'GZ_SIM_RESOURCE_PATH' in os.environ:
-        os.environ['GZ_SIM_RESOURCE_PATH'] += os.pathsep + gz_model_path
-    else:
-        os.environ['GZ_SIM_RESOURCE_PATH'] = gz_model_path
-
-    # Set initial drone pose - start at 1m height
-    os.environ['PX4_GZ_MODEL_POSE'] = '0 0 0.1 0 0 0'
+    # # Set initial drone pose
+    os.environ['PX4_GZ_MODEL_POSE'] = "0,0,0.1,0,0,0"
+    
+    # Add launch argument for PX4-Autopilot path
+    px4_autopilot_path = LaunchConfiguration('px4_autopilot_path')
     
     # Launch PX4 SITL with x500_depth
     px4_sitl = ExecuteProcess(
         cmd=['make', 'px4_sitl', 'gz_x500_depth_mono'],
-        cwd=os.environ['HOME'] + '/PX4-Autopilot',
+        cwd=px4_autopilot_path,
         output='screen'
     )
     
@@ -43,7 +34,7 @@ def generate_launch_description():
         package='ros_gz_sim',
         executable='create',
         arguments=[
-            '-file', os.path.join(model_path, 'cylinder', 'model.sdf'),
+            '-file', os.path.join(gz_model_path, 'cylinder', 'model.sdf'),
             '-name', 'cylinder_front',
             '-x', '5',     # 5 meters in front of the drone
             '-y', '0',     # centered on y-axis
@@ -62,7 +53,7 @@ def generate_launch_description():
         package='ros_gz_sim',
         executable='create',
         arguments=[
-            '-file', os.path.join(model_path, 'cylinder_short', 'model.sdf'),
+            '-file', os.path.join(gz_model_path, 'cylinder_short', 'model.sdf'),
             '-name', 'cylinder_back',
             '-x', '-5',    # 5 meters behind the drone
             '-y', '0',     # centered on y-axis
@@ -85,13 +76,14 @@ def generate_launch_description():
         }],
         arguments=[
             # Front RGB Camera
-            '/camera@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
+            '/rgb_camera@sensor_msgs/msg/Image[gz.msgs.Image',
+            '/rgb_camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
             
             # Front Depth Camera
             '/depth_camera@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/depth_camera/depth_image@sensor_msgs/msg/Image[gz.msgs.Image',
-            '/depth_camera/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloud',
+            # '/depth_camera/depth_image@sensor_msgs/msg/Image[gz.msgs.Image',
+            '/depth_camera/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked',
+            '/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
             
             # Down Mono Camera
             '/mono_camera@sensor_msgs/msg/Image[gz.msgs.Image',
@@ -99,24 +91,25 @@ def generate_launch_description():
             
             # Clock and Odometry
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-            '/model/x500_depth_mono_0/odometry_with_covariance@nav_msgs/msg/Odometry[gz.msgs.OdometryWithCovariance',
+            # '/model/x500_depth_mono_0/odometry_with_covariance@nav_msgs/msg/Odometry[gz.msgs.OdometryWithCovariance',
         ],
         remappings=[
             # Front RGB Camera remappings
-            ('/camera', '/drone/front_rgb'),
-            ('/camera_info', '/drone/front_rgb/camera_info'),
+            ('/rgb_camera', '/drone/front_rgb'),
+            ('/rgb_camera/camera_info', '/drone/front_rgb/camera_info'),
             
             # Front Depth Camera remappings
             ('/depth_camera', '/drone/front_depth'),
-            ('/depth_camera/depth_image', '/drone/front_depth/depth'),
+            # ('/depth_camera/depth_image', '/drone/front_depth/depth'),
             ('/depth_camera/points', '/drone/front_depth/points'),
+            ('/camera_info', '/drone/front_depth/camera_info'),
             
             # Down Mono Camera remappings
             ('/mono_camera', '/drone/down_mono'),
             ('/mono_camera/camera_info', '/drone/down_mono/camera_info'),
             
             # Odometry remapping
-            ('/model/x500_depth_mono_0/odometry_with_covariance', '/fmu/out/vehicle_odometry'),
+            # ('/model/x500_depth_mono_0/odometry_with_covariance', '/fmu/out/vehicle_odometry'),
         ],
         output='screen'
     )
@@ -126,6 +119,10 @@ def generate_launch_description():
             'use_sim_time',
             default_value='True',
             description='Use simulation (Gazebo) clock if true'),
+        DeclareLaunchArgument(
+            'px4_autopilot_path',
+            default_value=os.environ.get('HOME', '/home/' + os.environ.get('USER', 'user')) + '/PX4-Autopilot',
+            description='Path to PX4-Autopilot directory'),
         px4_sitl,
         TimerAction(
             period=2.0,

@@ -39,8 +39,6 @@ px4_add_romfs_files(
 	1012_gazebo-classic_iris_rplidar
 	1013_gazebo-classic_iris_vision
 	1013_gazebo-classic_iris_vision.post
-	1014_gazebo-classic_iris_obs_avoid
-	1014_gazebo-classic_iris_obs_avoid.post
 	1015_gazebo-classic_iris_depth_camera
 	1016_gazebo-classic_iris_downward_depth_camera
 	1017_gazebo-classic_iris_opt_flow_mockup
@@ -93,7 +91,8 @@ px4_add_romfs_files(
 	4018_gz_quadtailsitter
 	4019_gz_x500_gimbal
 	4020_gz_tiltrotor
-	4021_gz_x500_depth_mono
+	4021_gz_x500_flow
+	4022_gz_x500_depth_mono
 
 	6011_gazebo-classic_typhoon_h480
 	6011_gazebo-classic_typhoon_h480.post
