@@ -58,21 +58,21 @@ class PoseVisualizer(Node):
         
         # X axis (red)
         x_marker = self.create_arrow_marker(
-            [1, 0, 0, 1],  # red
+            [1.0, 0.0, 0.0, 1.0],  # red
             0
         )
         self.markers.markers.append(x_marker)
         
         # Y axis (green)
         y_marker = self.create_arrow_marker(
-            [0, 1, 0, 1],  # green
+            [0.0, 1.0, 0.0, 1.0],  # green
             1
         )
         self.markers.markers.append(y_marker)
         
         # Z axis (blue)
         z_marker = self.create_arrow_marker(
-            [0, 0, 1, 1],  # blue
+            [0.0, 0.0, 1.0, 1.0],  # blue
             2
         )
         self.markers.markers.append(z_marker)
@@ -87,10 +87,10 @@ class PoseVisualizer(Node):
         marker.scale.x = 0.5  # shaft diameter
         marker.scale.y = 0.1  # head diameter
         marker.scale.z = 0.1  # head length
-        marker.color.r = color[0]
-        marker.color.g = color[1]
-        marker.color.b = color[2]
-        marker.color.a = color[3]
+        marker.color.r = float(color[0])
+        marker.color.g = float(color[1])
+        marker.color.b = float(color[2])
+        marker.color.a = float(color[3])
         return marker
 
     def update_markers(self, position, orientation):
@@ -101,9 +101,9 @@ class PoseVisualizer(Node):
         # Update each axis marker
         for i, marker in enumerate(self.markers.markers):
             marker.header.stamp = self.get_clock().now().to_msg()
-            marker.pose.position.x = position[0]
-            marker.pose.position.y = position[1]
-            marker.pose.position.z = position[2]
+            marker.pose.position.x = float(position[0])
+            marker.pose.position.y = float(position[1])
+            marker.pose.position.z = float(position[2])
             
             # Set orientation based on axis
             if i == 0:  # X axis
@@ -125,15 +125,15 @@ class PoseVisualizer(Node):
         msg.header.frame_id = "map"
         
         # Set position
-        msg.pose.pose.position.x = position[0]
-        msg.pose.pose.position.y = position[1]
-        msg.pose.pose.position.z = position[2]
+        msg.pose.pose.position.x = float(position[0])
+        msg.pose.pose.position.y = float(position[1])
+        msg.pose.pose.position.z = float(position[2])
         
         # Set orientation
-        msg.pose.pose.orientation.w = orientation[0]
-        msg.pose.pose.orientation.x = orientation[1]
-        msg.pose.pose.orientation.y = orientation[2]
-        msg.pose.pose.orientation.z = orientation[3]
+        msg.pose.pose.orientation.w = float(orientation[0])
+        msg.pose.pose.orientation.x = float(orientation[1])
+        msg.pose.pose.orientation.y = float(orientation[2])
+        msg.pose.pose.orientation.z = float(orientation[3])
         
         # Set covariance (example values - adjust based on your needs)
         # 6x6 matrix [x, y, z, roll, pitch, yaw]
@@ -147,17 +147,17 @@ class PoseVisualizer(Node):
         try:
             # Extract position
             position = [
-                msg.position[0],
-                msg.position[1],
-                msg.position[2]
+                float(msg.position[0]),
+                float(msg.position[1]),
+                float(msg.position[2])
             ]
             
             # Extract orientation (quaternion)
             orientation = [
-                msg.q[0],  # w
-                msg.q[1],  # x
-                msg.q[2],  # y
-                msg.q[3]   # z
+                float(msg.q[0]),  # w
+                float(msg.q[1]),  # x
+                float(msg.q[2]),  # y
+                float(msg.q[3])   # z
             ]
             
             # Update and publish markers

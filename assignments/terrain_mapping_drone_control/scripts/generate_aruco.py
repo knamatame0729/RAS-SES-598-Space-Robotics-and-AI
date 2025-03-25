@@ -12,7 +12,7 @@ def generate_aruco_marker():
     # Generate marker image (ID 0)
     marker_size = 400  # pixels
     marker_image = np.zeros((marker_size, marker_size), dtype=np.uint8)
-    marker_image = cv2.aruco.generateImageMarker(aruco_dict, 0, marker_size, marker_image, 1)
+    marker_image = cv2.aruco.generateImageMarker(aruco_dict, 1, marker_size, marker_image, 1)
     
     # Add white border for better visibility
     border_size = 50
@@ -28,7 +28,7 @@ def generate_aruco_marker():
     os.makedirs(materials_dir, exist_ok=True)
     
     # Save the marker
-    output_path = os.path.join(materials_dir, 'aruco_marker_0.png')
+    output_path = os.path.join(materials_dir, 'aruco_marker_1.png')
     cv2.imwrite(output_path, final_image)
     print(f"Generated ArUco marker at: {output_path}")
 

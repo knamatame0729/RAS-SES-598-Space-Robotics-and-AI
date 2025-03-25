@@ -6,6 +6,7 @@ from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction
 from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
 import os
+import math
 
 def generate_launch_description():
     """Generate launch description for cylinder landing mission."""
@@ -114,6 +115,7 @@ def generate_launch_description():
         output='screen'
     )
 
+    
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
@@ -135,5 +137,5 @@ def generate_launch_description():
         TimerAction(
             period=3.0,
             actions=[bridge]
-        )
+        ),
     ]) 

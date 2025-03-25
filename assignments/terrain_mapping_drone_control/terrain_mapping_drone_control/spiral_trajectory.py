@@ -56,11 +56,11 @@ class SpiralTrajectory(Node):
         self.start_time = time.time()
         
         # Spiral parameters
-        self.INITIAL_HEIGHT = 20.0  # meters
-        self.SPIRAL_DIAMETER = 35.0  # meters
-        self.DESCENT_RATE = 0.5    # m/s
+        self.INITIAL_HEIGHT = 0.1  # meters
+        self.SPIRAL_DIAMETER = 15.0  # meters
+        self.ASCENT_RATE = 0.5    # m/s
         self.SPIRAL_PERIOD = 10.0   # seconds for one complete revolution
-        self.MIN_HEIGHT = 5.0       # minimum height before landing
+        self.MAX_HEIGHT = 20.0       # minimum height before landing
         self.HEIGHT_REACHED_THRESHOLD = 0.3  # meters
         
         # State machine
@@ -181,7 +181,7 @@ class SpiralTrajectory(Node):
         # Calculate position
         x = radius * math.cos(angle)
         y = radius * math.sin(angle)
-        z = -(self.INITIAL_HEIGHT - self.DESCENT_RATE * time_elapsed)
+        z = -(self.INITIAL_HEIGHT + self.ASCENT_RATE * time_elapsed)
         
         # Calculate yaw to always point towards the center
         yaw = angle + math.pi
@@ -209,20 +209,20 @@ class SpiralTrajectory(Node):
             else:
                 self.state = "SPIRAL"
                 self.start_time = time.time()
-                self.get_logger().info("Starting spiral descent")
+                self.get_logger().info("Starting spiral ascent")
 
         elif self.state == "SPIRAL":
             time_elapsed = time.time() - self.start_time
             x, y, z, yaw = self.calculate_spiral_position(time_elapsed)
             
             # Check if we've reached minimum height
-            if -z <= self.MIN_HEIGHT:
+            if -z >= self.MAX_HEIGHT:
                 self.state = "LAND"
                 self.get_logger().info("Reached minimum height, preparing to land")
             else:
                 self.publish_trajectory_setpoint(x=x, y=y, z=z, yaw=yaw)
                 self.get_logger().info(
-                    f"Spiral descent... Height: {-z:.2f}m, "
+                    f"Spiral ascent... Height: {-z:.2f}m, "
                     f"Position: ({x:.2f}, {y:.2f})"
                 )
 

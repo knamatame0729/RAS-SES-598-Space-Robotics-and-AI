@@ -8,10 +8,11 @@ import cv2
 import numpy as np
 from geometry_msgs.msg import TransformStamped, Point
 from tf2_ros import TransformBroadcaster
-from std_msgs.msg import String
+from std_msgs.msg import String, Int32
 from transforms3d.euler import mat2euler
 import math
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from custom_msgs.msg import MarkerWithId
 
 class ArucoTracker(Node):
     def __init__(self):
@@ -54,6 +55,8 @@ class ArucoTracker(Node):
         # Publishers
         self.debug_image_pub = self.create_publisher(Image, '/aruco/debug_image', 10)
         self.marker_pose_pub = self.create_publisher(String, '/aruco/marker_pose', 10)
+        self.marker_position_pub = self.create_publisher(MarkerWithId, '/aruco/marker_position', 10)
+        self.marker_count_pub = self.create_publisher(Int32, '/aruco/marker_count', 10)
         
         # TF broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
@@ -94,8 +97,12 @@ class ArucoTracker(Node):
                     image, self.aruco_dict, parameters=self.aruco_params)
             
             if ids is not None:
-                self.get_logger().info(f'Detected {len(ids)} markers')
+                marker_count_msg = Int32()
+                marker_count_msg.data = len(ids)
+                self.marker_count_pub.publish(marker_count_msg) # Publish amount of marker
+                #self.get_logger().info(f'Detected {len(ids)} markers')
             return corners, ids, rejected
+
         except Exception as e:
             self.get_logger().error(f'Error in marker detection: {str(e)}')
             return [], None, []
@@ -190,6 +197,15 @@ class ArucoTracker(Node):
                                 
                                 self.tf_broadcaster.sendTransform(transform)
                                 
+                                # Publish marker position as xyz coordinate
+                                position_msg = MarkerWithId()
+                                position_msg.x = float(marker_position[0])
+                                position_msg.y = float(marker_position[1])
+                                position_msg.z = float(marker_position[2])
+                                position_msg.id = int(ids[i][0])
+                                self.marker_position_pub.publish(position_msg)
+                                #self.get_logger().info(f"Marker Position - x: {position_msg.x:.2f}, y: {position_msg.y:.2f}, z: {position_msg.z:.2f}")
+                                
                                 # Publish marker pose as text
                                 pose_msg = String()
                                 pose_msg.data = (
@@ -199,7 +215,7 @@ class ArucoTracker(Node):
                                     f"z:{marker_position[2]:.2f}m"
                                 )
                                 self.marker_pose_pub.publish(pose_msg)
-                                
+
                                 # Calculate and draw marker center
                                 marker_center = corners[i][0].mean(axis=0)
                                 self.draw_crosshair(debug_image, marker_center, size=20, color=(0,0,255), thickness=2)
@@ -310,9 +326,9 @@ class ArucoTracker(Node):
             self.camera_matrix = np.array(msg.k).reshape(3, 3)
             self.dist_coeffs = np.array(msg.d)
             self.calibration_received = True
-            self.get_logger().info('Camera calibration received')
-            self.get_logger().info(f'Updated camera matrix:\n{self.camera_matrix}')
-            self.get_logger().info(f'Distortion coefficients: {self.dist_coeffs}')
+            #self.get_logger().info('Camera calibration received')
+            #self.get_logger().info(f'Updated camera matrix:\n{self.camera_matrix}')
+            #self.get_logger().info(f'Distortion coefficients: {self.dist_coeffs}')
         except Exception as e:
             self.get_logger().error(f'Error processing camera calibration: {str(e)}')
 
