@@ -63,24 +63,23 @@ class SimpleTestNode(Node):
         self.vehicle_status = VehicleStatus()
         self.cylinder_position = None
         self.cylinder_info = None
-        self.aruco_positions = {'0': [], '1': []}
-        self.world_positions = {'0': [], '1': []}
+        self.aruco_positions = {'0': [], '1': []} # Camera-frame Aruco marker positions
+        self.world_positions = {'0': [], '1': []} # world-frame acuco marker positions
         self.target_position = None
-        self.marker_search_frag = False
-        self.target_position = None
-        self.found_tallest_rock = False
+        self.marker_search_frag = False           # Frag to be able to start searching
+        self.found_tallest_rock = False           # Frag to be able to start knowing tallest rock
         self.marker_count = 0
         
         # Flight parameters
-        self.TARGET_HEIGHT = 11.0  # meters
+        self.TARGET_HEIGHT = 11.0      # meters
         self.POSITION_THRESHOLD = 0.1  # meters
-        self.MIN_ARUCO_COUNT = 2 # at least two aruco marker
-        self.WAYPOINT_WAIT_TIME = 10.0
+        self.WAYPOINT_WAIT_TIME = 10.0 # maintain the position at waypoints (s)
+        self.TAKEOFF_RATE = 0.5        # takeoff speed
 
         # Waypoints
         self.search_points = [(0.0, 0.0), (0.0, 5.0), (0.0, -5.0)]
         self.current_waypoint = 0
-        self.wait_timer = 0.0
+        self.wait_timer = 0.0          # Timer for waypoint waiting
         
         # State machine
         self.state = "TAKEOFF"
@@ -142,7 +141,7 @@ class SimpleTestNode(Node):
         self.trajectory_setpoint_publisher.publish(msg)
 
     def is_at_position(self, x, y, z):
-        """Check if the drone has reached the target height."""
+        """Check if the drone has reached the target position."""
         try:
             current_x = self.vehicle_odometry.position[0]
             current_y = self.vehicle_odometry.position[1]
@@ -177,6 +176,7 @@ class SimpleTestNode(Node):
     """
           
     def marker_position_callback(self, msg):
+        """"Store Aruco marker positions by both camera frame and world frame"""
         if self.marker_search_frag:
             marker_id = msg.id
             if marker_id not in self.aruco_positions:
@@ -186,9 +186,11 @@ class SimpleTestNode(Node):
             self.aruco_positions[marker_id].append(msg)
             world_pos = self.camera_to_world(Point(x=msg.x, y=msg.y, z=msg.z))
             self.world_positions[marker_id].append(world_pos)
-            #self.get_logger().info(f"Saved marker position: x={msg.x}, y={msg.y}, z={msg.z}")
+            self.get_logger().info(f"Saved marker ID {marker_id}: camera (x={msg.x:.2f}, y={msg.y:.2f}, z={msg.z:.2f}), "
+                                      f"world (x={world_pos.x:.2f}, y={world_pos.y:.2f}, z={world_pos.z:.2f})")
 
     def compute_average_position(self, marker_id):
+        """Compute the average positoin of a marker based on datas that are collected"""
         if marker_id in self.world_positions and len(self.world_positions[marker_id]) >= 200:
             positions = self.world_positions[marker_id]
             avg_x = sum(p.x for p in positions) / len(positions)
@@ -198,7 +200,7 @@ class SimpleTestNode(Node):
         return None
     
     def camera_to_world(self, aruco_pos):
-        """ Convert cylinder rock position to world coordinate from aruco """
+        """ Convert cylinder rock(aruco) position to world coordinate from aruco """
         try:
             drone_x = self.vehicle_odometry.position[0]
             drone_y = self.vehicle_odometry.position[1]
@@ -206,7 +208,7 @@ class SimpleTestNode(Node):
 
             rock_world_x = drone_x + aruco_pos.x
             rock_world_y = drone_y + aruco_pos.y
-            rock_world_z = drone_z - aruco_pos.z
+            rock_world_z = drone_z - aruco_pos.z + 0.4 # Offset +0.4
             
             return Point(x=rock_world_x, y=rock_world_y, z=rock_world_z)
         except (IndexError, AttributeError):
@@ -214,6 +216,7 @@ class SimpleTestNode(Node):
             return Point(x=0.0, y=0.0, z=0.0)
 
     def find_tallest_rock(self):
+        """Finding teh tallest rock based on average marker positions"""
         self.found_tallest_rock = False
         if self.world_positions:
             avg_positions = {}
@@ -242,17 +245,24 @@ class SimpleTestNode(Node):
             current_height = 0.0
 
         if self.state == "TAKEOFF":
+            time = self.offboard_setpoint_counter * 0.1
+            yaw_angle = (self.offboard_setpoint_counter * 0.3) % (2 * 3.14159265359) # Rotate about yaw
+
+            target_z = min(self.TAKEOFF_RATE * time, self.TARGET_HEIGHT)
+            z_setpoint = -target_z
+
             # Take off to target height
             self.publish_trajectory_setpoint(
                 x=0.0,
                 y=0.0,
-                z=-self.TARGET_HEIGHT,  # Negative because PX4 uses NED
-                yaw=0.0
+                z=z_setpoint,  # Negative because PX4 uses NED
+                yaw=-yaw_angle
             )
             
             # Log current height every second
             if self.offboard_setpoint_counter % 10 == 0:
                 self.get_logger().info(f"Taking off... Current height: {current_height:.2f}m")
+            
             
             # Check if we've reached target height
             if self.is_at_position(0.0, 0.0, self.TARGET_HEIGHT):
@@ -312,7 +322,7 @@ class SimpleTestNode(Node):
 
             if self.offboard_setpoint_counter % 10 == 0:
                 self.get_logger().info(f"Landing... Height: {current_height:.2f}m")
-            if self.is_at_position(self.target_position.y, self.target_position.x, 0.0):
+            if self.is_at_position(self.target_position.x, self.target_position.y, self.target_position.z):
                 self.state = "COMPLETE"
 
         elif self.state == "COMPLETE":

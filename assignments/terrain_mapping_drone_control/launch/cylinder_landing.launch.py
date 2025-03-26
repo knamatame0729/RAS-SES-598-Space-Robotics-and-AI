@@ -18,7 +18,7 @@ def generate_launch_description():
     gz_model_path = os.path.join(pkg_share, 'models')
 
     # # Set initial drone pose
-    os.environ['PX4_GZ_MODEL_POSE'] = "0,0,0.1,0,0,0"
+    os.environ['PX4_GZ_MODEL_POSE'] = "0,0,0.0,0,0,0"
     
     # Add launch argument for PX4-Autopilot path
     px4_autopilot_path = LaunchConfiguration('px4_autopilot_path')
