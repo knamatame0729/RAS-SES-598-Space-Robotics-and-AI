@@ -38,7 +38,7 @@ class BatteryMonitor(Node):
             self.initial_battery = msg.remaining
         
         # Compute battery usage
-        battery_usage = self.initial_battery - self.current_battery
+        battery_usage = (self.initial_battery - self.current_battery) * 100
         
         # Publish battery usage
         battery_usage_msg = Float32()

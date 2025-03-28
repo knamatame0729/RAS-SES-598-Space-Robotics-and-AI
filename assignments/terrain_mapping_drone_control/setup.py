@@ -36,7 +36,8 @@ setup(
             'terrain_mapping_drone_control/battery_monitor.py',
             'terrain_mapping_drone_control/spiral_trajectory.py',
             'terrain_mapping_drone_control/geometry_tracker.py',
-            'terrain_mapping_drone_control/pose_visualizer.py'
+            'terrain_mapping_drone_control/pose_visualizer.py',
+            'terrain_mapping_drone_control/aruco_pos_dist.py'
 
         ]),
         ('share/' + package_name + '/models/cylinder_short',
@@ -62,7 +63,8 @@ setup(
             'spiral_trajectory = terrain_mapping_drone_control.spiral_trajectory:main',
             'aruco_tracker = terrain_mapping_drone_control.aruco_tracker:main',
             'battery_monitor = terrain_mapping_drone_control.battery_monitor:main',
-            'geometry_tracker = terrain_mapping_drone_control.geometry_tracker:main'
+            'geometry_tracker = terrain_mapping_drone_control.geometry_tracker:main',
+            'aruco_pos_dist = terrain_mapping_drone_control.aruco_pos_dist:main'
         ],
     },
     python_requires='>=3.8'

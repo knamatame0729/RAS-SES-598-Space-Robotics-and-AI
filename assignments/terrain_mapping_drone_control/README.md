@@ -132,3 +132,40 @@ Use RTAB-Map or a SLAM ecosystem of your choice to map both rocks, and export th
 
 This assignment is licensed under the Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0). 
 For more details: https://creativecommons.org/licenses/by-nc-sa/4.0/ 
+
+
+# Assignment 3
+
+## Overview
+In this assignment the drone performs a mission of takeoff, waypoint navigation to search for Aruco markers, identification of the tallest marker, and landing on top of it.
+
+## Features
+### State Machine
+- Takeoff:  
+Drone ascends slowly to the target height while the dorone rotate in yaw. Once the drone reaches the height, it transitions to SEARCh
+- Search:  
+Navigates predefied waypoits to detect Aruco markers. After visiting all waypoints, it specifies the tallest rock with estimated from aruco markers and moves to PRELANDING
+- Pre-landing:  
+Move to the position of the tallest marker and then transitions to LAND
+- Landing:  
+Descends to land on top of the tallest marker.
+- Complet:  
+Disarms the drone an shutdown the node.
+
+### Method 
+- The drone is landing based on aruco marker
+- Computing the position of the aruco marker in camera frame and converted to world frame.  
+- Both short cylinder and taller cylinder positions in world frame are stored to compute the mean of position.  
+Afterwards, compare both mean of positions and land taller cylinder
+## Results
+- Simulation was done under 5 known environment.  
+Target Heigh : 12m, 14m, 16m, 18m, 20m.  
+Clik this link to see the video [Simulation Vidieo](https://drive.google.com/drive/u/2/folders/1L7iH7YnDYDiV7n6IIIt_4c3R_xx5x0tW)  
+
+- Battery Usage  
+Battery usage was up to 50% since more than 50% battery remaining won't be published.  
+![Image](https://github.com/user-attachments/assets/a0dc3ea4-dc7f-4fc4-b394-24956248079c)
+
+## Ongoing Problem
+- This project is simulated under the known environment. It is required to land under unknown enviromnet. Therefore, serching method needs to be changed.
+- Geometry_track.py needs to be utilized to estimate teh diameter of cylinders.

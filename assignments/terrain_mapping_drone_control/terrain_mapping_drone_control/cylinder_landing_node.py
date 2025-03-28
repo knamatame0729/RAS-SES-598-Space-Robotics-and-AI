@@ -69,11 +69,13 @@ class SimpleTestNode(Node):
         self.marker_search_frag = False           # Frag to be able to start searching
         self.found_tallest_rock = False           # Frag to be able to start knowing tallest rock
         self.marker_count = 0
+        self.landing = False
         
         # Flight parameters
-        self.TARGET_HEIGHT = 11.0      # meters
+        self.TARGET_HEIGHT = 18.0      # meters
         self.POSITION_THRESHOLD = 0.1  # meters
-        self.WAYPOINT_WAIT_TIME = 10.0 # maintain the position at waypoints (s)
+        self.POSITION_THRESHOLD_Z = 3.0
+        self.WAYPOINT_WAIT_TIME = 5.0 # maintain the position at waypoints (s)
         self.TAKEOFF_RATE = 0.5        # takeoff speed
 
         # Waypoints
@@ -143,12 +145,20 @@ class SimpleTestNode(Node):
     def is_at_position(self, x, y, z):
         """Check if the drone has reached the target position."""
         try:
-            current_x = self.vehicle_odometry.position[0]
-            current_y = self.vehicle_odometry.position[1]
-            current_height = -self.vehicle_odometry.position[2]  # Convert NED to altitude
-            return (abs(current_x - x) < self.POSITION_THRESHOLD and 
-                    abs(current_y - y) < self.POSITION_THRESHOLD and
-                    abs(current_height - z) < self.POSITION_THRESHOLD)
+            if self.landing:
+                current_x = self.vehicle_odometry.position[0]
+                current_y = self.vehicle_odometry.position[1]
+                current_height = -self.vehicle_odometry.position[2]  # Convert NED to altitude
+                return (abs(current_x - x) < self.POSITION_THRESHOLD and 
+                        abs(current_y - y) < self.POSITION_THRESHOLD and
+                        abs(current_height - z) < self.POSITION_THRESHOLD_Z)
+            else:
+                current_x = self.vehicle_odometry.position[0]
+                current_y = self.vehicle_odometry.position[1]
+                current_height = -self.vehicle_odometry.position[2]  # Convert NED to altitude
+                return (abs(current_x - x) < self.POSITION_THRESHOLD and 
+                        abs(current_y - y) < self.POSITION_THRESHOLD and
+                        abs(current_height - z) < self.POSITION_THRESHOLD)
         except (IndexError, AttributeError):
             return False
 
@@ -208,7 +218,7 @@ class SimpleTestNode(Node):
 
             rock_world_x = drone_x + aruco_pos.x
             rock_world_y = drone_y + aruco_pos.y
-            rock_world_z = drone_z - aruco_pos.z + 0.4 # Offset +0.4
+            rock_world_z = drone_z - aruco_pos.z 
             
             return Point(x=rock_world_x, y=rock_world_y, z=rock_world_z)
         except (IndexError, AttributeError):
@@ -272,30 +282,30 @@ class SimpleTestNode(Node):
                 self.get_logger().info("Reached desired height, beginning searching makers")
 
         elif self.state == "SEARCH":
-            waypoint_x, waypoint_y = self.search_points[self.current_waypoint]
-            self.publish_trajectory_setpoint(
-                x=waypoint_x,
-                y=waypoint_y,
-                z=-self.TARGET_HEIGHT,  # Negative because PX4 uses NED
-                yaw=0.0
-            )
+            if self.current_waypoint < len(self.search_points):
+                waypoint_x, waypoint_y = self.search_points[self.current_waypoint]
+                self.publish_trajectory_setpoint(
+                    x=waypoint_x,
+                    y=waypoint_y,
+                    z=-self.TARGET_HEIGHT,  # Negative because PX4 uses NED
+                    yaw=0.0
+                )
 
-            if self.offboard_setpoint_counter % 10 == 0:
-                self.get_logger().info(f"Searching... Found {self.marker_count} markers")
-            
-            if self.is_at_position(waypoint_x, waypoint_y, self.TARGET_HEIGHT):
-                if self.current_waypoint == 0:
-                    self.current_waypoint += 1
-                else:
-                    if self.wait_timer < self.WAYPOINT_WAIT_TIME:
-                        self.wait_timer += 0.1
-                    else:
-                        self.wait_timer = 0.0 # Initialize timer
+                if self.offboard_setpoint_counter % 10 == 0:
+                    self.get_logger().info(f"Searching... Found {self.marker_count} markers")
+                
+                if self.is_at_position(waypoint_x, waypoint_y, self.TARGET_HEIGHT):
+                    if self.current_waypoint == 0:
                         self.current_waypoint += 1
-
-                if self.current_waypoint >= len(self.search_points):
-                    if self.find_tallest_rock():
-                        self.state = "PRELANDING"
+                    else:
+                        if self.wait_timer < self.WAYPOINT_WAIT_TIME:
+                            self.wait_timer += 0.1
+                        else:
+                            self.wait_timer = 0.0 # Initialize timer
+                            self.current_waypoint += 1
+            else:
+                if self.find_tallest_rock():
+                    self.state = "PRELANDING"
                 
             
         elif self.state == "PRELANDING":
@@ -312,6 +322,7 @@ class SimpleTestNode(Node):
                 self.state = "LAND"
 
         elif self.state == "LAND":
+            self.landing = True
             # Land by going to height 0
             self.publish_trajectory_setpoint(
                 x=self.target_position.x,
