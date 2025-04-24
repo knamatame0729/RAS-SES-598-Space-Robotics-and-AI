@@ -24,10 +24,11 @@ def generate_launch_description():
 
         # RTAB-Map node
         Node(
-            package='rtabmap_ros',
+            package='rtabmap_slam',     #rtabmap_slam
             executable='rtabmap',
             name='rtabmap',
             output='screen',
+            #arguments=['--ros-args', '--log-level', 'debug'],
             parameters=[{
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
                 
@@ -36,7 +37,7 @@ def generate_launch_description():
                 'subscribe_depth': True,
                 'subscribe_rgb': True,
                 'approx_sync': True,
-                'queue_size': 10,
+                'sync_queue_size': 10,
                 
                 # Odometry parameters
                 'odom_frame_id': 'odom',
@@ -65,9 +66,9 @@ def generate_launch_description():
             }],
             remappings=[
                 # Camera topics
-                ('rgb/image', '/camera/rgb/image_raw'),
-                ('depth/image', '/camera/depth/image_raw'),
-                ('rgb/camera_info', '/camera/rgb/camera_info'),
+                ('rgb/image', '/drone/front_rgb'),
+                ('depth/image', '/drone/front_depth'),
+                ('rgb/camera_info', '/drone/front_rgb/camera_info'),
                 
                 # Odometry from PX4
                 ('odom', '/fmu/out/vehicle_odometry'),
@@ -82,20 +83,45 @@ def generate_launch_description():
 
         # RTAB-Map point cloud generation
         Node(
-            package='rtabmap_ros',
+            package='rtabmap_util',            # rtabmap_util
             executable='point_cloud_xyz',
             name='point_cloud_xyz',
             parameters=[{
                 'use_sim_time': LaunchConfiguration('use_sim_time'),
-                'decimation': 4,
-                'voxel_size': 0.02,
+                'decimation': 4,      # 2 -> 4,
+                'voxel_size': 0.02,  # 0.03 -> 0.02
                 'max_depth': 4.0,
-                'min_depth': 0.4
+                'min_depth': 0.4,
             }],
             remappings=[
-                ('depth/image', '/camera/depth/image_raw'),
-                ('depth/camera_info', '/camera/depth/camera_info'),
+                ('depth/image', '/drone/front_depth'),
+                ('depth/camera_info', '/drone/front_depth/camera_info'),
                 ('cloud', 'cloud_xyz')
+            ]
+        ),
+
+        Node(
+            package='rtabmap_viz',
+            executable='rtabmap_viz',
+            name='rtabmap_viz',
+            output='screen',
+            parameters=[{
+                'use_sim_time': LaunchConfiguration('use_sim_time'),
+                'frame_id': 'base_link',
+                'odom_frame_id': 'odom',
+                'approx_sync': True,
+                'Gui': True,
+                'subscribe_rgb': True,
+                'sbuscribe_depth': True,
+            }],
+            remappings=[
+                ('rgb/image', '/drone/front_rgb'),
+                ('depth/image', '/drone/front_depth'),
+                ('rgb/camera_info', '/drone/front_rgb/camera_info'),
+                ('odom', '/fmu/out/vehicle_odometry'),
+                ('grid_map', 'map'),
+                ('mapData', 'mapData'),
+                ('cloud_map', 'cloud_map')
             ]
         ),
 

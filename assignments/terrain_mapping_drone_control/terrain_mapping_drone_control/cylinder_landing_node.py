@@ -46,7 +46,7 @@ class SimpleTestNode(Node):
             Float32MultiArray, '/geometry/cylinder_info',
             self.cylinder_info_callback, 10)
 
-        # Subscribe aruco marker position
+        # Subscribe aruco marker position (custom message)
         self.aruco_marker_pos = self.create_subscription(
             MarkerWithId, '/aruco/marker_position',
             self.marker_position_callback, 10)
@@ -72,23 +72,23 @@ class SimpleTestNode(Node):
         self.landing = False
         
         # Flight parameters
-        self.TARGET_HEIGHT = 18.0      # meters
-        self.POSITION_THRESHOLD = 0.1  # meters
-        self.POSITION_THRESHOLD_Z = 3.0
-        self.WAYPOINT_WAIT_TIME = 5.0 # maintain the position at waypoints (s)
-        self.TAKEOFF_RATE = 0.5        # takeoff speed
+        self.TARGET_HEIGHT = 12.0        # meters
+        self.POSITION_THRESHOLD = 0.1    # meters
+        self.POSITION_THRESHOLD_Z = 3.0  # meters
+        self.WAYPOINT_WAIT_TIME = 5.0    # maintain the position at waypoints (s)
+        self.TAKEOFF_RATE = 0.5          # takeoff speed
 
         # Waypoints
         self.search_points = [(0.0, 0.0), (0.0, 5.0), (0.0, -5.0)]
         self.current_waypoint = 0
-        self.wait_timer = 0.0          # Timer for waypoint waiting
+        self.wait_timer = 0.0            # Timer for waypoint waiting
         
         # State machine
         self.state = "TAKEOFF"
         
         # Create a timer to publish control commands
         self.create_timer(0.1, self.control_loop)  # 10Hz control loop
-
+    
     def vehicle_odometry_callback(self, msg):
         """Store vehicle position from odometry."""
         self.vehicle_odometry = msg
@@ -186,7 +186,14 @@ class SimpleTestNode(Node):
     """
           
     def marker_position_callback(self, msg):
-        """"Store Aruco marker positions by both camera frame and world frame"""
+
+        """ 
+        1. When the marker_search_frag is true (SEARCH State)
+        2. When the id is observed at first, initialize the list just in case
+        3. Store the msg [id, pos(x, y, z)]
+        4. Call camera_to_world func to convert coordinate
+        """
+
         if self.marker_search_frag:
             marker_id = msg.id
             if marker_id not in self.aruco_positions:
@@ -196,11 +203,16 @@ class SimpleTestNode(Node):
             self.aruco_positions[marker_id].append(msg)
             world_pos = self.camera_to_world(Point(x=msg.x, y=msg.y, z=msg.z))
             self.world_positions[marker_id].append(world_pos)
-            self.get_logger().info(f"Saved marker ID {marker_id}: camera (x={msg.x:.2f}, y={msg.y:.2f}, z={msg.z:.2f}), "
-                                      f"world (x={world_pos.x:.2f}, y={world_pos.y:.2f}, z={world_pos.z:.2f})")
+            self.get_logger().info(f"Saved marker ID {marker_id}: camera (x={msg.x:.2f}, y={msg.y:.2f}, z={msg.z:.2f}), " f"world (x={world_pos.x:.2f}, y={world_pos.y:.2f}, z={world_pos.z:.2f})")
 
     def compute_average_position(self, marker_id):
-        """Compute the average positoin of a marker based on datas that are collected"""
+
+        """
+        1. When marker_id is in the world_postitions list and they are stored 200 (to reduce noise)
+        2. Get the postions for marker_id
+        3. Compute the average of positions
+        """
+
         if marker_id in self.world_positions and len(self.world_positions[marker_id]) >= 200:
             positions = self.world_positions[marker_id]
             avg_x = sum(p.x for p in positions) / len(positions)
@@ -211,31 +223,31 @@ class SimpleTestNode(Node):
     
     def camera_to_world(self, aruco_pos):
         """ Convert cylinder rock(aruco) position to world coordinate from aruco """
-        try:
-            drone_x = self.vehicle_odometry.position[0]
-            drone_y = self.vehicle_odometry.position[1]
-            drone_z = -self.vehicle_odometry.position[2]
+        
+        drone_x = self.vehicle_odometry.position[0]
+        drone_y = self.vehicle_odometry.position[1]
+        drone_z = -self.vehicle_odometry.position[2]
 
-            rock_world_x = drone_x + aruco_pos.x
-            rock_world_y = drone_y + aruco_pos.y
-            rock_world_z = drone_z - aruco_pos.z 
-            
-            return Point(x=rock_world_x, y=rock_world_y, z=rock_world_z)
-        except (IndexError, AttributeError):
-            self.get_logger().info("Failed to convert to world coordinates")
-            return Point(x=0.0, y=0.0, z=0.0)
+        # Drone position + aruco position(camera frame)
+        rock_world_x = drone_x + aruco_pos.x
+        rock_world_y = drone_y + aruco_pos.y
+        rock_world_z = drone_z - aruco_pos.z 
+        
+        return Point(x=rock_world_x, y=rock_world_y, z=rock_world_z)
+        
 
     def find_tallest_rock(self):
         """Finding teh tallest rock based on average marker positions"""
+        
         self.found_tallest_rock = False
         if self.world_positions:
             avg_positions = {}
             for marker_id in self.world_positions:
-                avg_pos = self.compute_average_position(marker_id)
+                avg_pos = self.compute_average_position(marker_id) # Average of 200 data
                 if avg_pos:
                     avg_positions[marker_id] = avg_pos
             if avg_positions:
-                self.target_position = max(avg_positions.values(), key=lambda p: p.z)
+                self.target_position = max(avg_positions.values(), key=lambda p: p.z) # Store the tallest rock in [x, y, z]
                 self.get_logger().info(f"Tallest cylinder: x={self.target_position.x:.2f}, y={self.target_position.y:.2f}, z={self.target_position.z:.2f}")
                 self.found_tallest_rock = True
         return self.found_tallest_rock
@@ -255,7 +267,7 @@ class SimpleTestNode(Node):
             current_height = 0.0
 
         if self.state == "TAKEOFF":
-            time = self.offboard_setpoint_counter * 0.1
+            time = self.offboard_setpoint_counter * 0.1 # Every 0.1 second (offboard_setpoint_counter=1, 2, 3 ....)
             yaw_angle = (self.offboard_setpoint_counter * 0.3) % (2 * 3.14159265359) # Rotate about yaw
 
             target_z = min(self.TAKEOFF_RATE * time, self.TARGET_HEIGHT)
@@ -274,7 +286,7 @@ class SimpleTestNode(Node):
                 self.get_logger().info(f"Taking off... Current height: {current_height:.2f}m")
             
             
-            # Check if we've reached target height
+            # Check if the drone reached target height
             if self.is_at_position(0.0, 0.0, self.TARGET_HEIGHT):
                 # When the drone reached target height, beginning searching aruco marker
                 self.marker_search_frag = True

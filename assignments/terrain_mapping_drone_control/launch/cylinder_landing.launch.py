@@ -115,7 +115,13 @@ def generate_launch_description():
         output='screen'
     )
 
-    
+    camera_transform = Node(
+        package='tf_ros',
+        executable='static_transform_publisher',
+        name='oak_d_lite_tf',
+        arguments=['0', '0', '0', '0', '-1.570', 'base_link', 'OakD-Lite-Modify/base_link'],
+        output='screen'
+    )
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
