@@ -170,7 +170,7 @@ Battery usage was up to 50% since more than 50% battery remaining won't be publi
 ## Extra Credit
 - Mapping is done by using the down mono camera which is attached the drone.  
 - ORB SLAM is utilized to map in this assignment.  
-Click [here](https://drive.google.com/file/d/1ouV4takPg4qUl0gtYrj81lqvHuU7ED-w/view?usp=drive_link) to see the video.
+Click ![here](https://github.com/user-attachments/assets/2dd8cfb6-4ca5-48e3-836d-cfe6574645cd) to see the video.
 
 ## Ongoing Problem
 - This project is simulated under the known environment. It is required to land under unknown enviromnet. Therefore, serching method needs to be changed.
