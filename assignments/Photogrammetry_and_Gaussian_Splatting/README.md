@@ -18,7 +18,7 @@ Although there is some noise in the generated 3D Gaussian Splatting, the result 
 https://github.com/user-attachments/assets/edc8f7ab-bb56-45cb-95c2-a7cc4c1bac6d
 
 
-#### metrics  
+#### Metrics  
 
 The Gaussian Splatting model showed poor results. To improve performance, increasing image quality or quantity, and tuning training parameters may be needed.
 
