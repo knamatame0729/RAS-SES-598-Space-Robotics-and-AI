@@ -15,12 +15,8 @@
 ### Gaussian Splatting using nerfstudio
 
 Although there is some noise in the generated 3D Gaussian Splatting, the result appears visually very well-reconstructed.  
-<<<<<<< HEAD
 
 https://github.com/user-attachments/assets/f424866d-ed6e-4fdf-bc59-bd8f4a7e5997
-=======
-https://github.com/user-attachments/assets/d04ae9e4-572e-46be-a699-d8d0756631e3
->>>>>>> 6062297aa95eab65f89760dd1fab52523d24f6e3
 
 
 
