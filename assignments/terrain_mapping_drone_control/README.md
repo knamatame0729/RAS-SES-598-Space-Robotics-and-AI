@@ -158,16 +158,26 @@ Disarms the drone an shutdown the node.
 - Both short cylinder and taller cylinder positions in world frame are stored to compute the mean of position.  
 Afterwards, compare both mean of positions and land taller cylinder
 ## Results
-- Simulation was done under 5 known environment.  
+- Simulation was done under 5 known environment.   
+
 Target Height : 12m  
+
 https://github.com/user-attachments/assets/8adc61c6-6e06-40f7-be4f-54e6e304754f  
+
 Target Height : 14m  
+
 https://github.com/user-attachments/assets/cec042c5-c3ce-4a6a-8fe0-5dd377ce52bf  
+
 Target Height : 16m  
+
 https://github.com/user-attachments/assets/ce395b14-b906-47e7-88ee-82815381c8b5  
+
 Target Height : 18m  
+
 https://github.com/user-attachments/assets/febb93a4-269d-47e4-8584-86e8aa2bef9f  
+
 Target Height : 20m  
+
 https://github.com/user-attachments/assets/cf946edd-c205-4eee-a96c-f8daa55134b9
 
 - Battery Usage  
@@ -178,6 +188,7 @@ Battery usage was up to 50% since more than 50% battery remaining won't be publi
 ## Extra Credit
 - Mapping is done by using the down mono camera which is attached the drone.  
 - ORB SLAM is utilized to map in this assignment.  
+ 
 https://github.com/user-attachments/assets/2dd8cfb6-4ca5-48e3-836d-cfe6574645cd
 
 ## Ongoing Problem
