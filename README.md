@@ -16,3 +16,8 @@ Course website: https://deepgis.org/dreamslab/ses598/
 
 https://github.com/user-attachments/assets/9cbc684d-ac32-4030-80eb-ae1bd46dc26f  
 
+## Rocky Times Challenge - Search, Map, & Analyze  
+
+https://github.com/user-attachments/assets/ce395b14-b906-47e7-88ee-82815381c8b5  
+
+https://github.com/user-attachments/assets/2dd8cfb6-4ca5-48e3-836d-cfe6574645cd  
