@@ -11,3 +11,8 @@ Course website: https://deepgis.org/dreamslab/ses598/
 
 - Cross-track-error 
    ![Image](https://github.com/user-attachments/assets/5480de43-bb33-46e4-bbdb-c1fc1a2204cf)
+
+## Cart-Pole Optimal Control  
+
+https://github.com/user-attachments/assets/9cbc684d-ac32-4030-80eb-ae1bd46dc26f  
+
